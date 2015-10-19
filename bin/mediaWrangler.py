@@ -37,36 +37,6 @@ def checkForDupes(dirs):
     logging.debug([master[x] for x in master if x in dupes])
 
 
-
-
-
-    # # Get list of all xml files (of virtualEntities)
-    # files = [x for x in os.listdir(d) if os.path.isfile(os.path.join(d, x)) and x[0] != '.' and x.endswith(fileTypes)]
-
-    # overdict = {}
-
-    # # Step through all virtualEntities
-    # for tree in trees:
-    #     extalias = {}
-    #     r = tree.getroot()
-    #     seen = set()
-    #     dupe = []
-
-    # # Step through all children of the root virtualEntity
-    #     for child in r:
-    #         ea = child.get('externalAlias')
-    #         if ea not in seen:
-    #             seen.add(ea)
-    #         else:
-    # # Append name of field with duplicate externalAlias
-    #             dupe.append(child.get('name'))
-
-    # # Add all names that were seen to the dictionary
-    #     overdict[r.get('name')] = dupe
-
-    # print(str(overdict))
-
-
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
         if abs(num) < 1024.0:
@@ -126,3 +96,5 @@ if __name__ == "__main__":
 
     ### Reset working directory to original ###
     os.chdir(cwd)
+
+    
