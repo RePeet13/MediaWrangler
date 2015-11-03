@@ -78,6 +78,7 @@ def processTvFolder(d):
 
     os.chdir(cwd)
 
+
 ### Process bits in the tv folder
 def processTvShow(rootDir, d):
 
@@ -138,15 +139,17 @@ def getTvShow(rootDir, name):
     pickedShow = False
 
     while not pickedShow:
-        ans = raw_input('Choose a show (1), or ask for overview of show (2?): ')
-        if len(ans) == 1:
-            out = allShows[int(ans)-1]
-            pickedShow = True
-        elif len(ans) == 2 and ans[1] =='?':
-            printShowDetails(allShows[int(ans[0])-1])
-        else:
-            print('What? \n')
-
+        try:
+            ans = raw_input('Choose a show (1), or ask for overview of show (2?): ')
+            if len(ans) == 1:
+                out = allShows[int(ans)-1]
+                pickedShow = True
+            elif len(ans) == 2 and ans[1] =='?':
+                printShowDetails(allShows[int(ans[0])-1])
+            else:
+                print('What? \n')
+        except IndexError, e:
+                print("What? That's not a choice! \n")
     return out
 
 
