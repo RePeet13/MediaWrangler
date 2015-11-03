@@ -2,6 +2,7 @@ import argparse, logging, os, re, urllib, urllib2, zipfile
 import xml.etree.ElementTree as xml
 import pprint
 
+### Global Vars
 apiKey = '269A9437555594F2'
 apiBase = 'http://thetvdb.com/api/'
 defaultLang = 'en'
@@ -11,6 +12,7 @@ zeros=3
 ### from http://stackoverflow.com/questions/9129329/using-regex-in-python-to-get-episode-numbers-from-file-name
 identifierRegex = re.compile(r"(?:s|season)(\d{1,3})(?:e|x|episode|\n)(\d{1,3})", re.I)
 seasonRegex = re.compile(r"(?:s|season|\n)(\s*)(\d{1,3})", re.I)
+
 
 
 def getLanguages():
@@ -95,21 +97,20 @@ def processTvShow(rootDir, d):
 
     logging.debug('Processing TV Show Folder: ' + d)
 
-    print("----------------")
     localListing = listLocalEpisodes()
-    pprint.pprint(localListing)
-    print("----------------")
+    # pprint.pprint(localListing)
 
     show = getTvShow(rootDir, d)
     if show is None:
         out['success'] = False
         out['error'] = 'Getting TV show failed or was aborted'
+        os.chdir(cwd)
         return out
 
 
     showDetails = getTvShowDetails(rootDir, show)
 
-    # TODO Remove
+    # TODO Change
     out['success'] = True
     out['error'] = 'None'
 
@@ -231,7 +232,7 @@ def getTvShowDetails(rootDir, show):
 def processSeriesXml(seriesFileName):
     tree = xml.parse(seriesFileName)
     root = tree.getroot()
-    logging.debug(root)
+    # logging.debug(root)
 
     seasons = {}
     for ep in root.findall('Episode'):
@@ -248,7 +249,7 @@ def processSeriesXml(seriesFileName):
 
     for s in seasons:
         seasons[s].sort(key=lambda x: x['EpisodeNumber'])
-    pprint.pprint(seasons)
+    # pprint.pprint(seasons)
 
 
 ### List the episodes that are present locally
@@ -260,7 +261,6 @@ def listLocalEpisodes():
 
     for s in seasons:
         res = listLocalEpisodesBySeasonDir(s)
-        print(s)
         snum = seasonRegex.findall(s)[0][1].zfill(zeros)
         # TODO this returns array of tuples with two vars, on is empty string for some reason
         if res is not None:
