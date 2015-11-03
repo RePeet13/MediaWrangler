@@ -131,7 +131,7 @@ def getTvShow(rootDir, name):
     res = response.read()
 
     goToScratch(rootDir, name)
-    f = open(websafeName + '.xml', 'w')
+    f = open(name + '.xml', 'w')
     f.write(res)
     f.close()
     os.chdir(basePath)
@@ -236,14 +236,15 @@ def processSeriesXml(seriesFileName):
     seasons = {}
     for ep in root.findall('Episode'):
         s = ep.find('SeasonNumber').text
+        s = s.zfill(zeros)
         if s not in seasons:
-            seasons[s.zfill(zeros)] = []
+            seasons[s] = []
         tmp = {
             'id': ep.find('id').text,
             'EpisodeName': ep.find('EpisodeName').text,
             'EpisodeNumber': ep.find('EpisodeNumber').text
         }
-        seasons[s.zfill(zeros)].append(tmp)
+        seasons[s].append(tmp)
 
     for s in seasons:
         seasons[s].sort(key=lambda x: x['EpisodeNumber'])
