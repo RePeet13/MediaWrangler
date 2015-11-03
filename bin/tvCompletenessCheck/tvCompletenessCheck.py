@@ -134,18 +134,38 @@ def getTvShow(rootDir, name):
 
         allShows.append(s)
 
+    pickedShow = False
+
+    if len(allShows) == 1:
+
+        while not pickedShow:
+            printTheShows(allShows)
+            ans = raw_input('Is this the show you were looking for? (y/n) ')
+            if ans.lower() == 'y':
+                pickedShow = True
+                return out
+            elif ans.lower() == 'n':
+                pickedShow = True
+                # TODO retry here
+            else:
+                print('What? \n')
+
+
     printTheShows(allShows)
 
     pickedShow = False
 
     while not pickedShow:
         try:
-            ans = raw_input('Choose a show (1), or ask for overview of show (2?): ')
+            ans = raw_input('Choose a show (1), or ask for overview of show (2?), or say (stop): ')
             if len(ans) == 1:
                 out = allShows[int(ans)-1]
                 pickedShow = True
             elif len(ans) == 2 and ans[1] =='?':
                 printShowDetails(allShows[int(ans[0])-1])
+            elif ans.lower() == 'stop':
+                # TODO Handle this error case in the calling method
+                return {}
             else:
                 print('What? \n')
         except IndexError, e:
