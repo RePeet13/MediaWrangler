@@ -1,10 +1,16 @@
-import argparse, logging, os, urllib, urllib2, zipfile
+import argparse, logging, os, re, urllib, urllib2, zipfile
 import xml.etree.ElementTree as xml
 import pprint
 
 apiKey = '269A9437555594F2'
 apiBase = 'http://thetvdb.com/api/'
 defaultLang = 'en'
+
+zeros=3
+
+### from http://stackoverflow.com/questions/9129329/using-regex-in-python-to-get-episode-numbers-from-file-name
+identifierRegex = re.compile(r"(?:s|season)(\d{1,3})(?:e|x|episode|\n)(\d{1,3})", re.I)
+seasonRegex = re.compile(r"(?:s|season|\n)(\s*)(\d{1,3})", re.I)
 
 
 def getLanguages():
@@ -89,7 +95,10 @@ def processTvShow(rootDir, d):
 
     logging.debug('Processing TV Show Folder: ' + d)
 
+    print("----------------")
     localListing = listLocalEpisodes()
+    pprint.pprint(localListing)
+    print("----------------")
 
     show = getTvShow(rootDir, d)
     if show is None:
@@ -117,7 +126,7 @@ def getTvShow(rootDir, name):
     websafeName = urllib.quote_plus(name)
 
     url = apiBase + 'GetSeries.php?seriesname="' + websafeName + '"'
-    logging.debug('Querying TVDB for: ' + websafeName+ ' at: \n' + url)
+    logging.debug('Querying TVDB for: "' + name + '" - ( ' + websafeName + ' ) at: \n' + url)
     response = urllib2.urlopen(url)
     res = response.read()
 
@@ -150,10 +159,10 @@ def getTvShow(rootDir, name):
             ans = raw_input('Is this the show you were looking for? (y/n) ')
             if ans.lower() == 'y':
                 pickedShow = True
-                return None
+                return allShows[0]
             elif ans.lower() == 'n':
                 pickedShow = True
-                # TODO retry here
+                # TODO retry/stop here
             else:
                 print('What? \n')
 
@@ -228,13 +237,13 @@ def processSeriesXml(seriesFileName):
     for ep in root.findall('Episode'):
         s = ep.find('SeasonNumber').text
         if s not in seasons:
-            seasons[s] = []
+            seasons[s.zfill(zeros)] = []
         tmp = {
             'id': ep.find('id').text,
             'EpisodeName': ep.find('EpisodeName').text,
             'EpisodeNumber': ep.find('EpisodeNumber').text
         }
-        seasons[s].append(tmp)
+        seasons[s.zfill(zeros)].append(tmp)
 
     for s in seasons:
         seasons[s].sort(key=lambda x: x['EpisodeNumber'])
@@ -243,9 +252,71 @@ def processSeriesXml(seriesFileName):
 
 ### List the episodes that are present locally
 def listLocalEpisodes():
+    out = {}
 
     # List the seasons, omitting the files and hidden folders
-    seasons = [x for x in os.getcwd() if not os.path.isfile(os.path.join(os.getcwd(), x)) and x[0] != '.']
+    seasons = [x for x in os.listdir(os.getcwd()) if not os.path.isfile(os.path.join(os.getcwd(), x)) and x[0] != '.']
+
+    for s in seasons:
+        res = listLocalEpisodesBySeasonDir(s)
+        print(s)
+        snum = seasonRegex.findall(s)[0][1].zfill(zeros)
+        # TODO this returns array of tuples with two vars, on is empty string for some reason
+        if res is not None:
+            out[snum] = res
+
+    return out
+
+
+### List episodes in a season directory
+def listLocalEpisodesBySeasonDir(d):
+
+    if os.path.isfile(os.path.join(os.getcwd(), d)):
+        return None
+
+    cwd = os.getcwd()
+    os.chdir(d)
+
+    out = []
+    fileCandidates = [x for x in os.listdir(os.getcwd()) if os.path.isfile(os.path.join(os.getcwd(), x)) and x[0] != '.']
+    for f in fileCandidates:
+        # Have a max of 3 things, first will be show, second will be season/ep, third is everything else
+        # Bones.S01E02.Random Text.mkv => ["Bones", "S01E02", "Random Text.mkv"]
+        tmp = f.split('.', 2)
+        if len(tmp) == 3:
+            num = findEpisodeIdentifier(f)
+            episodeNameSpecs = tmp[2].rsplit('.', 1)
+            e = {
+                "EpisodeIdentifier": tmp[1],
+                "SeasonNumber": num[0] if num is not None else 'error',
+                "EpisodeNumber": num[1] if num is not None else 'error',
+                "EpisodeName": episodeNameSpecs[0],
+                "ShowName": tmp[0],
+                "FileName": f,
+                "FileType": episodeNameSpecs[1],
+                "FilePath": os.path.join(os.getcwd(), f)
+            }
+            out.append(e)
+        else:
+            pass
+            # TODO error scenario
+
+
+    out.sort(key=lambda x: x['EpisodeNumber'])
+
+    os.chdir(cwd)
+    return out
+
+
+### Parse the Season/Episode Identifier into [SeasonNo, EpisodeNo] or None
+### from http://stackoverflow.com/questions/9129329/using-regex-in-python-to-get-episode-numbers-from-file-name
+def findEpisodeIdentifier(i):
+    res = identifierRegex.findall(i)[0]
+    # TODO Consider error scenarios here
+    out = (int(res[0]), int(res[1]))
+    # TODO catch parsing error
+    return out
+
 
 ### Go to (and make if necessary) scratch folder
 def goToScratch(rootDir, name):
