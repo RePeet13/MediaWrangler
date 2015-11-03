@@ -26,7 +26,7 @@ def getLanguages():
 ### Save tvdb server time for incremental updates
 def getServerTime():
 
-    ### TODO likely this needs to be implemented in such a way that you can pass in a show name and look up when it was grabbed, or nothing
+    # TODO likely this needs to be implemented in such a way that you can pass in a show name and look up when it was grabbed, or nothing
 
     cwd = os.getcwd()
     os.chdir(getScriptPath())
@@ -89,7 +89,14 @@ def processTvShow(rootDir, d):
 
     logging.debug('Processing TV Show Folder: ' + d)
 
+    localListing = listLocalEpisodes()
+
     show = getTvShow(rootDir, d)
+    if show is None:
+        out['success'] = False
+        out['error'] = 'Getting TV show failed or was aborted'
+        return out
+
 
     showDetails = getTvShowDetails(rootDir, show)
 
@@ -143,7 +150,7 @@ def getTvShow(rootDir, name):
             ans = raw_input('Is this the show you were looking for? (y/n) ')
             if ans.lower() == 'y':
                 pickedShow = True
-                return out
+                return None
             elif ans.lower() == 'n':
                 pickedShow = True
                 # TODO retry here
@@ -164,8 +171,7 @@ def getTvShow(rootDir, name):
             elif len(ans) == 2 and ans[1] =='?':
                 printShowDetails(allShows[int(ans[0])-1])
             elif ans.lower() == 'stop':
-                # TODO Handle this error case in the calling method
-                return {}
+                return None
             else:
                 print('What? \n')
         except IndexError, e:
@@ -235,10 +241,15 @@ def processSeriesXml(seriesFileName):
     pprint.pprint(seasons)
 
 
+### List the episodes that are present locally
+def listLocalEpisodes():
+
+    # List the seasons, omitting the files and hidden folders
+    seasons = [x for x in os.getcwd() if not os.path.isfile(os.path.join(os.getcwd(), x)) and x[0] != '.']
 
 ### Go to (and make if necessary) scratch folder
 def goToScratch(rootDir, name):
-    ### Find and/or go into scratch folder
+    # Find and/or go into scratch folder
     tv_dirs = [x for x in os.listdir(rootDir) if x == 'scratch']
     # logging.debug(str(tv_dirs))
     if (len(tv_dirs) == 0):
@@ -329,15 +340,15 @@ if __name__ == "__main__":
 
     logging.debug(str(args))
 
-    ### Implement language chooser here if desired
+    # Implement language chooser here if desired
     getLanguages()
 
-    ### THE REAL WORK
+    # THE REAL WORK
     dirs = massageInputDirs(args.dirs)
     for d in dirs:
         processTvFolder(d)
 
-    ### Reset working directory to original ###
+    # Reset working directory to original ###
     os.chdir(cwd)
 
     
