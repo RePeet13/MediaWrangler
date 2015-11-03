@@ -55,3 +55,9 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Mac Crap
+*.DS_*
+
+# Other
+tv/
