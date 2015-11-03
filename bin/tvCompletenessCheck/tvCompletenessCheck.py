@@ -261,6 +261,18 @@ def getScriptPath():
     return os.path.dirname(os.path.realpath(__file__))
 
 
+# For directories without a leading slash, append the current working dir
+def massageInputDirs(dirs):
+    out = []
+    for d in dirs:
+        if d[0] is not '/':
+            out.append(os.path.join(os.getcwd(), d))
+            # logging.debug(d)
+        else:
+            out.append(d)
+    return out
+
+
 ### Respond to call from command line ###
 if __name__ == "__main__":
     global cwd
@@ -298,7 +310,8 @@ if __name__ == "__main__":
     getLanguages()
 
     ### THE REAL WORK
-    for d in args.dirs:
+    dirs = massageInputDirs(args.dirs)
+    for d in dirs:
         processTvFolder(d)
 
     ### Reset working directory to original ###
