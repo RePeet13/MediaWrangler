@@ -86,6 +86,8 @@ def processTvFolder(d):
 
     os.chdir(cwd)
 
+    # TODO have a return here
+
 
 ### Process bits in the tv folder
 def processTvShow(rootDir, d):
@@ -94,6 +96,7 @@ def processTvShow(rootDir, d):
     os.chdir(d)
 
     out = {}
+    out['missing'] = {}
 
     logging.debug('Processing TV Show Folder: ' + d)
 
@@ -107,8 +110,27 @@ def processTvShow(rootDir, d):
         os.chdir(cwd)
         return out
 
-
     showDetails = getTvShowDetails(rootDir, show)
+    # pprint.pprint(showDetails)
+
+    # Check out episodes missing in seasons that are present locally
+    # TODO what about empty season folders?
+    for key in localListing:
+        print(key)
+        # TODO worry about key error?
+        haveEpisodes = [int(x['EpisodeNumber']) for x in localListing[key]]
+        # print('Have Episodes: ' + str(haveEpisodes))
+        missing = []
+        # print('ShowDetails: ' + str(showDetails[key])
+        missingEpisodes = [x for x in showDetails[key] if x['EpisodeNumber'] not in haveEpisodes]
+        out['missing'][key] = missingEpisodes
+
+    # Add whole missing seasons
+    for key in showDetails:
+        if key not in localListing:
+            out['missing'][key] = showDetails[key]
+
+    pprint.pprint(out['missing'])
 
     # TODO Change
     out['success'] = True
@@ -223,9 +245,10 @@ def getTvShowDetails(rootDir, show):
     getunzipped(url, os.getcwd())
 
     if os.path.isfile(defaultLang + '.xml'):
-        processSeriesXml(defaultLang + '.xml')
+        showDetails = processSeriesXml(defaultLang + '.xml')
 
     os.chdir(basePath)
+    return showDetails
 
 
 ### Process the series detail data returned from TVDB
@@ -250,6 +273,7 @@ def processSeriesXml(seriesFileName):
     for s in seasons:
         seasons[s].sort(key=lambda x: x['EpisodeNumber'])
     # pprint.pprint(seasons)
+    return seasons
 
 
 ### List the episodes that are present locally
