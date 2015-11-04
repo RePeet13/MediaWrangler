@@ -2,11 +2,15 @@ import argparse, logging, os, re, urllib, urllib2, zipfile
 import xml.etree.ElementTree as xml
 import pprint
 
-### Global Vars
-apiKey = '269A9437555594F2'
-apiBase = 'http://thetvdb.com/api/'
+### Global Vars ###
+# The TVDB Vars
+tvdbApiKey = '269A9437555594F2'
+tvdbApiBase = 'http://thetvdb.com/api/'
 defaultLang = 'en'
-
+# The MovieDB Vars
+tmdbApiKey = '7cc20c36cd56bebad8bcfb0844bac3f0'
+tmdbApiBase = 'http://api.themoviedb.org/3/'
+# Other
 zeros=3
 
 ### from http://stackoverflow.com/questions/9129329/using-regex-in-python-to-get-episode-numbers-from-file-name
@@ -21,7 +25,7 @@ def getLanguages():
 
     if (os.path.isfile('languages.xml') is False):
         logging.warning("Fetching languages")
-        response = urllib2.urlopen(apiBase + apiKey + '/' + 'languages.xml')
+        response = urllib2.urlopen(tvdbApiBase + tvdbApiKey + '/' + 'languages.xml')
         res = response.read()
 
         f = open('languages.xml', 'w')
@@ -41,7 +45,7 @@ def getServerTime():
 
     if (os.path.isfile('serverTime.txt') is False):
         logging.debug("Fetching server time")
-        response = urllib2.urlopen(apiBase + 'Updates.php?type=none')
+        response = urllib2.urlopen(tvdbApiBase + 'Updates.php?type=none')
         res = response.read()
         root = xml.fromstring(res)
         t = root[0].text
@@ -148,7 +152,7 @@ def getTvShow(rootDir, name):
 
     websafeName = urllib.quote_plus(name)
 
-    url = apiBase + 'GetSeries.php?seriesname="' + websafeName + '"'
+    url = tvdbApiBase + 'GetSeries.php?seriesname="' + websafeName + '"'
     logging.debug('Querying TVDB for: "' + name + '" - ( ' + websafeName + ' ) at: \n' + url)
     response = urllib2.urlopen(url)
     res = response.read()
@@ -232,7 +236,7 @@ def getTvShowDetails(rootDir, show):
     sid = show['seriesId']
     # TODO catch keyError here, check that sid has something in it
 
-    url = apiBase + apiKey + '/series/' + sid + '/all/' + defaultLang + '.zip'
+    url = tvdbApiBase + tvdbApiKey + '/series/' + sid + '/all/' + defaultLang + '.zip'
     logging.debug('Querying TVDB for: ' + show['name'] + ' at: \n' + url)
     # response = urllib2.urlopen(url)
     # res = response.read()
