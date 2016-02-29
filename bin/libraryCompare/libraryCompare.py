@@ -155,7 +155,7 @@ def writeOutDupeList(dupeList):
                 text += '\t' + str(item['differences']) + '\n'
         text += '--------------------------------\n'
     print ('Writing Duplicates file')
-    with open('duplicateList.txt', 'wb') as text_file:
+    with open('output/duplicateList.txt', 'wb') as text_file:
         text_file.write(text)
 
 
@@ -174,7 +174,7 @@ def getfiles():
     if 'missingImdb' in cave_movie:
         missingText += createMissingText('cave', cave_movie['missingImdb'])
     print('Writing missingImdb file')
-    with open('missingImdb.txt', 'wb') as text_file:
+    with open('output/missingImdb.txt', 'wb') as text_file:
         text_file.write(missingText)
 
     # Remove missing imdbs because it will add duplicate noise (they're already in the main list)
