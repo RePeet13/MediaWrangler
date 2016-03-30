@@ -9,6 +9,7 @@ files = [
     'TheCave-Movies-Level 4-20160226-183246.csv'
 ]
 
+
 def read_csv(filename):
     with open('files/' + filename) as input_list:
         missingImdb = []
@@ -37,6 +38,7 @@ def read_csv(filename):
             ret_dict['missingImdb'] = missingImdb
         return ret_dict
 
+
 def processLists(lists):
     missingInHost = {}
     masterList = {}
@@ -49,7 +51,7 @@ def processLists(lists):
         # bar = pb.ProgressBar()
         print('Ingesting host: ' + host)
         # for title,item in bar(itemlist.iteritems()):
-        for title,item in itemlist.iteritems():
+        for title, item in itemlist.iteritems():
             for i in item:
                 i['host'] = host
                 i = rankItem(i)
@@ -72,6 +74,13 @@ def processLists(lists):
                         masterList[title].append(i)
 
     writeOutDupeList(duplicateList)
+
+    for title in masterList:
+        for host, itemlist in lists.iteritems():
+            if title not in itemlist:
+                missingInHost[host].append(title)
+
+    writeOutMissingList(missingInHost)
 
 
 def rankItem(item):
@@ -135,14 +144,17 @@ def list_in_dict(list1, list2, list1name, list2name):
     ret_string += 'items in both that are different ' + '\n--------------------------------\n' + ret_string2
     return ret_string + '\n\n'
 
+
 def createout(item, list):
     return ', '.join((item, list[item][0], list[item][1], list[item][2])) + '\n'
+
 
 def createMissingText(host, itemlist):
     t = '\n' + host + '\n--------------------------------\n'
     for item in itemlist:
         t += item['Title'] + '\n' # + ' -> ' + item + '\n'
     return t
+
 
 def writeOutDupeList(dupeList):
     text = 'Duplicates Found and Where\nTotal Found: ' + str(len(dupeList)) + '\n--------------------------------\n\n'
@@ -156,6 +168,27 @@ def writeOutDupeList(dupeList):
         text += '--------------------------------\n'
     print ('Writing Duplicates file')
     with open('output/duplicateList.txt', 'wb') as text_file:
+        text_file.write(text)
+
+
+def writeOutMissingList(missingInHost):
+    l = 0
+    h = 0
+
+    for host in missingInHost:
+        h = h + 1
+        l = l + len(missingInHost[host])
+
+    text = 'Items Found Missing in Hosts and Where\nTotal Found: ' + str(l) + ' in ' + str(h) + ' hosts' + '\n--------------------------------\n\n'
+
+    for host, items in missingInHost.iteritems():
+        text += host + ':\n'
+        for title in items:
+            text += stripChars('- ' + title) + '\n' # we could put more info here if desired
+        text += '\n'
+
+    print ('Writing Missing Items file')
+    with open('output/missingList.txt', 'wb') as text_file:
         text_file.write(text)
 
 
@@ -186,5 +219,6 @@ def getfiles():
     # out_text += list_in_dict(hulk_movie, cave_movie, 'Hulk', 'Cave')
     # with open('Output.txt', 'wb') as text_file:
     #     text_file.write(out_text)
+
 
 getfiles()
